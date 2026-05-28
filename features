@@ -1,0 +1,14 @@
+Features of Decision Intelligence Platforms
+Updated May 2026
+Mandatory Features:
+Decision collaboration — The capability to improve human-AI delegation, minimizing friction between human and machine decision actors within teams, enterprises and ecosystems. It generates decision workflows, ethics and outcomes safeguards, guardrails and alerting thresholds for input/output monitoring and risk mitigation.
+
+Decision execution — The capability to orchestrate and execute decision flows. It includes end-to-end decision life cycle management across development, testing and production environments, and various deployment options to ensure the reliable, scalable and efficient batch and real-time operations of decision services.
+
+Decision modeling — The capability to design explainable decision models from composite AI using a visual, low-code, decision-centric user interface to frame decisions with defined inputs, flow and outputs. It includes blueprints and decision network modeling to capture life cycle context, connectivity and continuity.
+
+Decision monitoring — The capability to view each decision, its model, logic, decision metadata and insight into the decision flow. It includes suggestions and alerts to implement safe and beneficial adaptations across the decision life cycle, involving humans in the loop as appropriate for learning and improving impact.
+
+Decision service composition — The capability to componentize decision flows and encapsulate tasks using modular, reusable components as decision services packaged for discovery. It includes integrating enterprise and partner system architectures and data ecosystems with an integration framework and programmatic access for composability.
+
+Decision governance — The capability to apply governance principles to DI by logging, auditing and advancing decision making with an accountability framework for secure, safe, ethical, transparent, repeatable, outcome-led decisions; includes governing decisions as assets (model, logic, metadata): stewardship, policies and metrics.
