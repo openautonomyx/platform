@@ -1,7 +1,9 @@
 # Build artifacts
+# NOTE: anchor binary names to the repo root so they do not also match the
+# cmd/metakube/ source directory.
 /bin/
 /dist/
-metakube
+/metakube
 *.exe
 *.out
 
