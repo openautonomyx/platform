@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/openautonomyx/platform/internal/catalog"
+	"github.com/openautonomyx/platform/internal/fabric"
 	"github.com/openautonomyx/platform/internal/store"
 )
 
@@ -75,6 +76,7 @@ type Server struct {
 	cfg     Config
 	cat     *catalog.Catalog
 	store   *store.Store
+	fab     *fabric.Fabric
 	log     *slog.Logger
 	handler http.Handler
 	started time.Time
@@ -82,7 +84,7 @@ type Server struct {
 }
 
 // NewServer constructs a ready-to-serve Server.
-func NewServer(cfg Config, cat *catalog.Catalog, st *store.Store, logger *slog.Logger) *Server {
+func NewServer(cfg Config, cat *catalog.Catalog, st *store.Store, fab *fabric.Fabric, logger *slog.Logger) *Server {
 	if logger == nil {
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
@@ -90,6 +92,7 @@ func NewServer(cfg Config, cat *catalog.Catalog, st *store.Store, logger *slog.L
 		cfg:     cfg,
 		cat:     cat,
 		store:   st,
+		fab:     fab,
 		log:     logger,
 		started: time.Now(),
 	}
@@ -151,6 +154,11 @@ func (s *Server) routes() http.Handler {
 
 	// Decision services as agent-callable tools (function-calling specs).
 	mux.HandleFunc("GET /v1/tools", s.handleListTools)
+
+	// Data fabric: external-signal connectors (e.g. Facebook Graph).
+	mux.HandleFunc("GET /v1/connectors", s.handleListConnectors)
+	mux.HandleFunc("GET /v1/connectors/{id}/authorize", s.handleAuthorizeConnector)
+	mux.HandleFunc("POST /v1/connectors/{id}/fetch", s.handleFetchConnector)
 
 	return chain(mux, requestIDMW, s.agentMW, s.logMW, s.recoverMW, s.authMW)
 }

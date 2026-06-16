@@ -41,6 +41,9 @@ func requiredPerm(r *http.Request) perm {
 	case r.Method == http.MethodPost && strings.HasPrefix(p, "/v1/reviews/"):
 		// Resolving a queued decision is a privileged reviewer action.
 		return permAuthor
+	case r.Method == http.MethodPost && strings.HasPrefix(p, "/v1/connectors/"):
+		// Fetching external data uses configured credentials — author only.
+		return permAuthor
 	}
 	// Everything else under the API (execute, simulate, reads) is consumer level.
 	return permConsumer

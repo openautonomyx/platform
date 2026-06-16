@@ -167,6 +167,10 @@ All configuration is via environment variables (12-factor):
 | `SHUTDOWN_TIMEOUT_SECONDS` | `15` | Graceful drain timeout |
 | `METAKUBE_ACCESS` | `open` | `open` (no auth) or `enforce` (role-based access) |
 | `METAKUBE_ROOT_AGENT` | `root` | Bootstrap author identity seeded at startup |
+| `FACEBOOK_APP_ID` / `FACEBOOK_APP_SECRET` | — | Facebook app credentials (enable the Graph connector) |
+| `FACEBOOK_REDIRECT_URI` | — | OAuth redirect URI for the consent flow |
+| `FACEBOOK_ACCESS_TOKEN` | — | User access token for live Graph calls |
+| `FACEBOOK_SCOPES` | — | Comma-separated fine-grained OAuth scopes |
 
 ---
 
@@ -181,6 +185,11 @@ line is attributed to that agent, and agents accrue activity history.
 - **Tools** — `GET /v1/tools` exposes each decision service as a function-calling
   tool spec (JSON-Schema params + invoke), so AI agents can discover and call
   decisions directly.
+- **Data fabric** — `GET /v1/connectors`, `…/{id}/authorize`, `…/{id}/fetch`: a
+  pluggable framework for ingesting external signals into decisions (a Facebook
+  Graph connector is included, with OAuth and fine-grained scopes). Connectors
+  are **inert until configured** with credentials; the OAuth/scope handling is
+  unit-tested, while live Graph calls require your app credentials and egress.
 - **Access control (opt-in)** — set `METAKUBE_ACCESS=enforce` to require roles:
 
   | Caller | May |

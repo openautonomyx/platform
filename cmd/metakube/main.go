@@ -15,6 +15,7 @@ import (
 
 	"github.com/openautonomyx/platform/internal/api"
 	"github.com/openautonomyx/platform/internal/catalog"
+	"github.com/openautonomyx/platform/internal/fabric"
 	"github.com/openautonomyx/platform/internal/store"
 	"github.com/openautonomyx/platform/internal/version"
 )
@@ -39,7 +40,12 @@ func main() {
 		logger.Error("failed to seed root agent", "error", err)
 	}
 
-	srv := api.NewServer(cfg, cat, st, logger)
+	// Data fabric: register external-signal connectors. Connectors are inert
+	// until their credentials are supplied via the environment.
+	fab := fabric.New()
+	fab.Register(fabric.NewFacebook(fabric.FacebookConfigFromEnv(os.Getenv)))
+
+	srv := api.NewServer(cfg, cat, st, fab, logger)
 
 	httpServer := &http.Server{
 		Addr:              cfg.Addr,
