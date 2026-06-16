@@ -5,11 +5,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/openautonomyx/platform/internal/store"
 )
 
 func TestAgentMW(t *testing.T) {
+	srv := &Server{store: store.New()}
 	var seen string
-	h := agentMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	h := srv.agentMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seen = agentFrom(r.Context())
 		w.WriteHeader(http.StatusOK)
 	}))

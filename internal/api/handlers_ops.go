@@ -44,6 +44,7 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 			"decisionMonitoring":         "GET /v1/runs, GET /v1/runs/{id}, GET /v1/metrics",
 			"decisionCollaboration":      "GET /v1/reviews, POST /v1/reviews/{id}/resolve",
 			"decisionGovernance":         "GET /v1/audit, GET /v1/policies, PUT /v1/policies/{id}",
+			"agentRegistry":              "GET /v1/agents, POST /v1/agents, GET /v1/agents/{id}",
 		},
 		"ops": map[string]string{
 			"health":     "GET /healthz",

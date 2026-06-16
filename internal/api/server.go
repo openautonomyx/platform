@@ -134,5 +134,10 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /v1/policies", s.handleListPolicies)
 	mux.HandleFunc("PUT /v1/policies/{id}", s.handleUpdatePolicy)
 
-	return chain(mux, requestIDMW, agentMW, s.logMW, s.recoverMW)
+	// Durable, platform-native agent identities.
+	mux.HandleFunc("GET /v1/agents", s.handleListAgents)
+	mux.HandleFunc("POST /v1/agents", s.handleRegisterAgent)
+	mux.HandleFunc("GET /v1/agents/{id}", s.handleGetAgent)
+
+	return chain(mux, requestIDMW, s.agentMW, s.logMW, s.recoverMW)
 }

@@ -74,12 +74,14 @@ const (
 
 // Store holds all operational state.
 type Store struct {
-	mu       sync.RWMutex
-	runs     []*Run
-	runIndex map[string]*Run
-	audit    []*AuditEntry
-	policies map[string]*Policy
-	policyID []string // stable ordering
+	mu         sync.RWMutex
+	runs       []*Run
+	runIndex   map[string]*Run
+	audit      []*AuditEntry
+	policies   map[string]*Policy
+	policyID   []string // stable ordering
+	agents     map[string]*Agent
+	agentOrder []string // stable ordering
 }
 
 // New returns a store seeded with default governance policies.
@@ -87,6 +89,7 @@ func New() *Store {
 	s := &Store{
 		runIndex: map[string]*Run{},
 		policies: map[string]*Policy{},
+		agents:   map[string]*Agent{},
 	}
 	for _, p := range defaultPolicies() {
 		s.policies[p.ID] = p

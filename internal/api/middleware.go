@@ -62,7 +62,7 @@ const defaultAgent = "anonymous"
 // header, falling back to X-Actor), stores it in the context, and echoes it on
 // the response. Every decision, audit entry and access-log line is then
 // attributable to an agent — the basis for governance in an agentic platform.
-func agentMW(next http.Handler) http.Handler {
+func (s *Server) agentMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		agent := r.Header.Get("X-Agent")
 		if agent == "" {
@@ -70,6 +70,11 @@ func agentMW(next http.Handler) http.Handler {
 		}
 		if agent == "" {
 			agent = defaultAgent
+		}
+		// Persist activity for identified agents so they become durable,
+		// first-class entities; anonymous traffic is not tracked.
+		if agent != defaultAgent {
+			s.store.TouchAgent(agent)
 		}
 		w.Header().Set("X-Agent", agent)
 		ctx := context.WithValue(r.Context(), agentKey, agent)
