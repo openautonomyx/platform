@@ -74,13 +74,13 @@ func TestEvalBoolShortCircuit(t *testing.T) {
 
 func TestErrors(t *testing.T) {
 	cases := []string{
-		"1 +",          // dangling operator
-		"(1 + 2",       // unbalanced paren
-		"1 2",          // trailing token
+		"1 +",           // dangling operator
+		"(1 + 2",        // unbalanced paren
+		"1 2",           // trailing token
 		"'unterminated", // bad string
-		"1 / 0",        // division by zero (eval error)
-		"unknownVar",   // unknown identifier (eval error)
-		"true + 1",     // type error
+		"1 / 0",         // division by zero (eval error)
+		"unknownVar",    // unknown identifier (eval error)
+		"true + 1",      // type error
 	}
 	for _, src := range cases {
 		e, err := Parse(src)
