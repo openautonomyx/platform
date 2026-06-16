@@ -139,5 +139,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /v1/agents", s.handleRegisterAgent)
 	mux.HandleFunc("GET /v1/agents/{id}", s.handleGetAgent)
 
+	// Decision services as agent-callable tools (function-calling specs).
+	mux.HandleFunc("GET /v1/tools", s.handleListTools)
+
 	return chain(mux, requestIDMW, s.agentMW, s.logMW, s.recoverMW)
 }
