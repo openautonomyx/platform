@@ -1,0 +1,15 @@
+[project]
+name = "dip"
+version = "0.1.0"
+description = "A small, explainable Decision Intelligence Platform engine"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+# Make the repo root importable so `import dip` works from tests/.
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"
