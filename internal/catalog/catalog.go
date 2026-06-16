@@ -90,6 +90,20 @@ func (c *Catalog) Versions(id string) []VersionRef {
 	return append([]VersionRef(nil), c.versions[id]...)
 }
 
+// Delete removes a model and its compiled form and version history. It reports
+// whether a model was present.
+func (c *Catalog) Delete(id string) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if _, ok := c.models[id]; !ok {
+		return false
+	}
+	delete(c.models, id)
+	delete(c.compiled, id)
+	delete(c.versions, id)
+	return true
+}
+
 // Len returns the number of registered models.
 func (c *Catalog) Len() int {
 	c.mu.RLock()

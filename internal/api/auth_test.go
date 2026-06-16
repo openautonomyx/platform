@@ -21,6 +21,8 @@ func TestRequiredPerm(t *testing.T) {
 		{"POST", "/v1/models/loan-approval/execute", permConsumer},
 		{"POST", "/v1/models", permAuthor},
 		{"POST", "/v1/agents", permAuthor},
+		{"DELETE", "/v1/models/loan-approval", permAuthor},
+		{"POST", "/v1/models/validate", permConsumer},
 		{"PUT", "/v1/policies/large-loan-review", permAuthor},
 		{"POST", "/v1/reviews/run_1/resolve", permAuthor},
 	}

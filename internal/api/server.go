@@ -120,7 +120,9 @@ func (s *Server) routes() http.Handler {
 	// Decision modeling & service composition.
 	mux.HandleFunc("GET /v1/models", s.handleListModels)
 	mux.HandleFunc("POST /v1/models", s.handleCreateModel)
+	mux.HandleFunc("POST /v1/models/validate", s.handleValidateModel)
 	mux.HandleFunc("GET /v1/models/{id}", s.handleGetModel)
+	mux.HandleFunc("DELETE /v1/models/{id}", s.handleDeleteModel)
 	mux.HandleFunc("GET /v1/models/{id}/versions", s.handleModelVersions)
 	mux.HandleFunc("GET /v1/services", s.handleListServices)
 

@@ -62,6 +62,48 @@ func (s *Server) handleCreateModel(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, m)
 }
 
+type validateRequest struct {
+	Model        engine.Model   `json:"model"`
+	SampleInputs map[string]any `json:"sampleInputs,omitempty"`
+}
+
+// handleValidateModel compiles a candidate model (and optionally evaluates it
+// against sample inputs) WITHOUT registering it, so authors can iterate safely.
+func (s *Server) handleValidateModel(w http.ResponseWriter, r *http.Request) {
+	var req validateRequest
+	if err := decodeJSON(w, r, &req); err != nil {
+		writeError(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+	compiled, err := engine.Compile(&req.Model)
+	if err != nil {
+		writeJSON(w, http.StatusOK, map[string]any{"valid": false, "error": err.Error()})
+		return
+	}
+	resp := map[string]any{"valid": true}
+	if len(req.SampleInputs) > 0 {
+		result, err := compiled.Evaluate(req.SampleInputs)
+		if err != nil {
+			resp["sampleError"] = err.Error()
+		} else {
+			resp["outcome"] = result.Outcome
+			resp["trace"] = result.Trace
+		}
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+// handleDeleteModel removes a model from the catalog (author action).
+func (s *Server) handleDeleteModel(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if !s.cat.Delete(id) {
+		writeError(w, r, http.StatusNotFound, "model not found")
+		return
+	}
+	s.store.AppendAudit(&store.AuditEntry{Actor: actor(r), Action: "MODEL_DELETED", Subject: id})
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // handleModelVersions returns the version history of a model.
 func (s *Server) handleModelVersions(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")

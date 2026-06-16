@@ -36,6 +36,8 @@ func requiredPerm(r *http.Request) perm {
 		return permAuthor
 	case r.Method == http.MethodPut && strings.HasPrefix(p, "/v1/policies/"):
 		return permAuthor
+	case r.Method == http.MethodDelete && strings.HasPrefix(p, "/v1/models/"):
+		return permAuthor
 	case r.Method == http.MethodPost && strings.HasPrefix(p, "/v1/reviews/"):
 		// Resolving a queued decision is a privileged reviewer action.
 		return permAuthor
