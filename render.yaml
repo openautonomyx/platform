@@ -1,0 +1,23 @@
+# Render Blueprint for MetaKube.
+#
+# 1. Push this repo to GitHub.
+# 2. In Render: New + > Blueprint, and point it at the repo.
+# 3. Render builds the Dockerfile and deploys a public web service.
+# 4. Custom domain: Service > Settings > Custom Domains > add your domain,
+#    then create the shown CNAME record.
+#
+# Render assigns a port via $PORT; we pin it to 8080 to match the container.
+
+services:
+  - type: web
+    name: metakube
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /readyz
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: LOG_LEVEL
+        value: info

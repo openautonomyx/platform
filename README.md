@@ -146,6 +146,12 @@ kubectl -n metakube port-forward svc/metakube 8080:80
 
 ---
 
+## Cloud deployment
+
+Run the real Go service on **Fly.io**, **Render** or **Google Cloud Run** — see
+**[DEPLOY.md](DEPLOY.md)**. Each builds the repo `Dockerfile` and gives a public
+HTTPS URL with custom-domain support.
+
 ## Configuration
 
 All configuration is via environment variables (12-factor):

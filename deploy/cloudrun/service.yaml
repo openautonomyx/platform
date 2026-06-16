@@ -1,0 +1,47 @@
+# Google Cloud Run (Knative) service for MetaKube.
+#
+# Build & push the image, then deploy this manifest:
+#   gcloud builds submit --tag REGION-docker.pkg.dev/PROJECT/metakube/metakube:latest
+#   gcloud run services replace deploy/cloudrun/service.yaml --region REGION
+#
+# Or one-shot from source (Cloud Build uses the repo Dockerfile):
+#   gcloud run deploy metakube --source . --region REGION --allow-unauthenticated
+#
+# Cloud Run injects PORT=8080 and the container listens on it (MetaKube's
+# default), so PORT is intentionally NOT set here.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: metakube
+  labels:
+    cloud.googleapis.com/location: us-central1
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 30
+      containers:
+        - image: us-central1-docker.pkg.dev/PROJECT_ID/metakube/metakube:latest
+          ports:
+            - name: http1
+              containerPort: 8080
+          env:
+            - name: LOG_LEVEL
+              value: info
+          resources:
+            limits:
+              cpu: "1"
+              memory: 256Mi
+          startupProbe:
+            httpGet:
+              path: /healthz
+            failureThreshold: 10
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /healthz
+            periodSeconds: 10
