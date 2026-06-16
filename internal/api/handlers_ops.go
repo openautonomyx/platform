@@ -37,6 +37,7 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 		"description": "Kubernetes-native Decision Intelligence Platform",
 		"version":     version.Get().Version,
 		"uptime":      time.Since(s.started).Round(time.Second).String(),
+		"accessMode":  s.cfg.AccessMode,
 		"capabilities": map[string]string{
 			"decisionModeling":           "POST /v1/models, GET /v1/models, GET /v1/models/{id}",
 			"decisionExecution":          "POST /v1/models/{id}/execute, POST /v1/models/{id}/simulate",

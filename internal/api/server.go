@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -19,6 +20,8 @@ type Config struct {
 	WriteTimeout    time.Duration
 	IdleTimeout     time.Duration
 	ShutdownTimeout time.Duration
+	// AccessMode is "open" (no enforcement, default) or "enforce" (RBAC).
+	AccessMode string
 }
 
 // DefaultConfig returns sensible production defaults.
@@ -29,6 +32,7 @@ func DefaultConfig() Config {
 		WriteTimeout:    30 * time.Second,
 		IdleTimeout:     120 * time.Second,
 		ShutdownTimeout: 15 * time.Second,
+		AccessMode:      accessOpen,
 	}
 }
 
@@ -38,6 +42,7 @@ func DefaultConfig() Config {
 //	METAKUBE_ADDR        -> Addr (takes precedence over PORT)
 //	READ_TIMEOUT_SECONDS, WRITE_TIMEOUT_SECONDS, IDLE_TIMEOUT_SECONDS,
 //	SHUTDOWN_TIMEOUT_SECONDS
+//	METAKUBE_ACCESS      -> AccessMode ("open" | "enforce")
 func ConfigFromEnv() Config {
 	c := DefaultConfig()
 	if p := os.Getenv("PORT"); p != "" {
@@ -50,6 +55,9 @@ func ConfigFromEnv() Config {
 	c.WriteTimeout = envDuration("WRITE_TIMEOUT_SECONDS", c.WriteTimeout)
 	c.IdleTimeout = envDuration("IDLE_TIMEOUT_SECONDS", c.IdleTimeout)
 	c.ShutdownTimeout = envDuration("SHUTDOWN_TIMEOUT_SECONDS", c.ShutdownTimeout)
+	if m := os.Getenv("METAKUBE_ACCESS"); m != "" {
+		c.AccessMode = strings.ToLower(m)
+	}
 	return c
 }
 
@@ -142,5 +150,5 @@ func (s *Server) routes() http.Handler {
 	// Decision services as agent-callable tools (function-calling specs).
 	mux.HandleFunc("GET /v1/tools", s.handleListTools)
 
-	return chain(mux, requestIDMW, s.agentMW, s.logMW, s.recoverMW)
+	return chain(mux, requestIDMW, s.agentMW, s.logMW, s.recoverMW, s.authMW)
 }

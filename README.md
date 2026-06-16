@@ -165,8 +165,33 @@ All configuration is via environment variables (12-factor):
 | `WRITE_TIMEOUT_SECONDS` | `30` | HTTP write timeout |
 | `IDLE_TIMEOUT_SECONDS` | `120` | HTTP idle timeout |
 | `SHUTDOWN_TIMEOUT_SECONDS` | `15` | Graceful drain timeout |
+| `METAKUBE_ACCESS` | `open` | `open` (no auth) or `enforce` (role-based access) |
+| `METAKUBE_ROOT_AGENT` | `root` | Bootstrap author identity seeded at startup |
 
 ---
+
+## Agents, tools & access control
+
+Agents are first-class, durable identities. Callers identify with an `X-Agent`
+header (falling back to `X-Actor`); every decision, audit entry and access-log
+line is attributed to that agent, and agents accrue activity history.
+
+- **Registry** — `GET/POST /v1/agents`, `GET /v1/agents/{id}`: register agents
+  with roles; request counts and first/last-seen are tracked automatically.
+- **Tools** — `GET /v1/tools` exposes each decision service as a function-calling
+  tool spec (JSON-Schema params + invoke), so AI agents can discover and call
+  decisions directly.
+- **Access control (opt-in)** — set `METAKUBE_ACCESS=enforce` to require roles:
+
+  | Caller | May |
+  |---|---|
+  | `author` role (or `*`) | Everything — create/replace models, update policies, register agents, resolve reviews |
+  | any identified agent | Execute decisions and read catalog/services/metrics (consumer) |
+  | anonymous | Public ops endpoints only |
+
+  Default is `open` (no enforcement), so existing clients are unaffected. A
+  bootstrap author (`METAKUBE_ROOT_AGENT`, default `root`, role `*`) is seeded at
+  startup so enforce mode is usable immediately.
 
 ## Stability & operations
 

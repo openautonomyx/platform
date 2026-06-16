@@ -27,6 +27,18 @@ func main() {
 	catalog.Seed(cat)
 	st := store.New()
 
+	// Seed a bootstrap author identity so RBAC enforce mode is usable out of
+	// the box (registering agents otherwise requires the author role).
+	rootAgent := os.Getenv("METAKUBE_ROOT_AGENT")
+	if rootAgent == "" {
+		rootAgent = "root"
+	}
+	if _, err := st.RegisterAgent(store.Agent{
+		ID: rootAgent, Name: "Root Operator", Description: "Bootstrap author identity", Roles: []string{"*"},
+	}, "system"); err != nil {
+		logger.Error("failed to seed root agent", "error", err)
+	}
+
 	srv := api.NewServer(cfg, cat, st, logger)
 
 	httpServer := &http.Server{
