@@ -134,5 +134,5 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /v1/policies", s.handleListPolicies)
 	mux.HandleFunc("PUT /v1/policies/{id}", s.handleUpdatePolicy)
 
-	return chain(mux, requestIDMW, s.logMW, s.recoverMW)
+	return chain(mux, requestIDMW, agentMW, s.logMW, s.recoverMW)
 }

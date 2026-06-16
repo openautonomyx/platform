@@ -10,7 +10,10 @@ import (
 
 type ctxKey int
 
-const requestIDKey ctxKey = iota
+const (
+	requestIDKey ctxKey = iota
+	agentKey
+)
 
 // middleware decorates an http.Handler.
 type middleware func(http.Handler) http.Handler
@@ -52,6 +55,36 @@ func requestIDMW(next http.Handler) http.Handler {
 	})
 }
 
+// defaultAgent labels callers that do not identify themselves.
+const defaultAgent = "anonymous"
+
+// agentMW resolves the calling agent's identity from the request (the X-Agent
+// header, falling back to X-Actor), stores it in the context, and echoes it on
+// the response. Every decision, audit entry and access-log line is then
+// attributable to an agent — the basis for governance in an agentic platform.
+func agentMW(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		agent := r.Header.Get("X-Agent")
+		if agent == "" {
+			agent = r.Header.Get("X-Actor")
+		}
+		if agent == "" {
+			agent = defaultAgent
+		}
+		w.Header().Set("X-Agent", agent)
+		ctx := context.WithValue(r.Context(), agentKey, agent)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// agentFrom returns the calling agent's identity from the context.
+func agentFrom(ctx context.Context) string {
+	if v, ok := ctx.Value(agentKey).(string); ok && v != "" {
+		return v
+	}
+	return defaultAgent
+}
+
 // statusRecorder captures the response status code for access logging.
 type statusRecorder struct {
 	http.ResponseWriter
@@ -89,6 +122,7 @@ func (s *Server) logMW(next http.Handler) http.Handler {
 			"bytes", sr.bytes,
 			"durationMs", time.Since(start).Milliseconds(),
 			"requestId", requestIDFrom(r.Context()),
+			"agent", agentFrom(r.Context()),
 			"remote", r.RemoteAddr,
 		)
 	})

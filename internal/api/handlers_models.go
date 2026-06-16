@@ -164,9 +164,8 @@ func (s *Server) tracesRetained() bool {
 	return true
 }
 
+// actor returns the identity to attribute an action to, as resolved by
+// agentMW from the request's X-Agent/X-Actor headers.
 func actor(r *http.Request) string {
-	if u := r.Header.Get("X-Actor"); u != "" {
-		return u
-	}
-	return "api"
+	return agentFrom(r.Context())
 }
