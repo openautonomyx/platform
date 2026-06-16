@@ -1,0 +1,13 @@
+.git
+.gitignore
+bin
+dist
+deploy
+docs
+*.md
+*.pdf
+Makefile
+api
+features
+overview
+trending-products

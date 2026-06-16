@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: MetaKube Decision Intelligence Platform API
+  description: >-
+    Kubernetes-native Decision Intelligence Platform. MetaKube lets you model
+    decisions declaratively, execute them at scale, monitor decision quality,
+    route low-confidence decisions to humans, compose reusable decision
+    services and govern everything with an immutable audit trail and policies.
+  version: 0.1.0
+  license:
+    name: Apache-2.0
+servers:
+  - url: http://localhost:8080
+    description: Local
+tags:
+  - name: Operations
+  - name: Modeling
+  - name: Execution
+  - name: Composition
+  - name: Monitoring
+  - name: Collaboration
+  - name: Governance
+
+paths:
+  /healthz:
+    get:
+      tags: [Operations]
+      summary: Liveness probe
+      responses:
+        "200": { description: Process is alive }
+  /readyz:
+    get:
+      tags: [Operations]
+      summary: Readiness probe
+      responses:
+        "200": { description: Ready to serve traffic }
+        "503": { description: Not ready }
+  /version:
+    get:
+      tags: [Operations]
+      summary: Build metadata
+      responses:
+        "200": { description: Build info }
+  /metrics:
+    get:
+      tags: [Operations]
+      summary: Prometheus metrics exposition
+      responses:
+        "200":
+          description: Metrics in Prometheus text format
+          content:
+            text/plain: {}
+
+  /v1/models:
+    get:
+      tags: [Modeling]
+      summary: List decision models
+      responses:
+        "200": { description: A list of model summaries }
+    post:
+      tags: [Modeling]
+      summary: Register or replace a decision model
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Model" }
+      responses:
+        "201": { description: Model registered }
+        "400": { description: Invalid model }
+  /v1/models/{id}:
+    get:
+      tags: [Modeling]
+      summary: Get a decision model
+      parameters: [{ $ref: "#/components/parameters/ModelId" }]
+      responses:
+        "200": { description: The model definition }
+        "404": { description: Not found }
+  /v1/models/{id}/versions:
+    get:
+      tags: [Modeling]
+      summary: Get a model's version history
+      parameters: [{ $ref: "#/components/parameters/ModelId" }]
+      responses:
+        "200": { description: Version history }
+        "404": { description: Not found }
+
+  /v1/services:
+    get:
+      tags: [Composition]
+      summary: Discover decision services and their I/O schemas
+      responses:
+        "200": { description: Service catalog }
+
+  /v1/models/{id}/execute:
+    post:
+      tags: [Execution]
+      summary: Execute a decision model against inputs
+      parameters: [{ $ref: "#/components/parameters/ModelId" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExecuteRequest" }
+      responses:
+        "200":
+          description: The decision run
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Run" }
+        "400": { description: Missing or invalid inputs }
+        "404": { description: Model not found }
+        "422": { description: Inputs failed model validation }
+  /v1/models/{id}/simulate:
+    post:
+      tags: [Execution]
+      summary: Generate synthetic traffic for a model
+      parameters: [{ $ref: "#/components/parameters/ModelId" }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                count: { type: integer, default: 100, maximum: 2000 }
+                seed: { type: integer, format: int64 }
+      responses:
+        "200": { description: Simulation summary }
+        "404": { description: Model not found }
+
+  /v1/runs:
+    get:
+      tags: [Monitoring]
+      summary: List decision runs
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 50 } }
+        - { name: model, in: query, schema: { type: string } }
+        - { name: decision, in: query, schema: { type: string, enum: [APPROVE, REVIEW, DECLINE] } }
+        - { name: status, in: query, schema: { type: string, enum: [FINAL, PENDING_REVIEW, RESOLVED] } }
+      responses:
+        "200": { description: Matching runs (traces omitted) }
+  /v1/runs/{id}:
+    get:
+      tags: [Monitoring]
+      summary: Get a run including its full explainability trace
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The run }
+        "404": { description: Not found }
+  /v1/metrics:
+    get:
+      tags: [Monitoring]
+      summary: Aggregated decision-quality metrics
+      responses:
+        "200": { description: Metrics snapshot }
+
+  /v1/reviews:
+    get:
+      tags: [Collaboration]
+      summary: List decisions awaiting human review
+      responses:
+        "200": { description: Pending reviews }
+  /v1/reviews/{id}/resolve:
+    post:
+      tags: [Collaboration]
+      summary: Apply a human verdict to a queued decision
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResolveRequest" }
+      responses:
+        "200": { description: The resolved run }
+        "404": { description: Run not found }
+        "409": { description: Run is not pending review }
+
+  /v1/audit:
+    get:
+      tags: [Governance]
+      summary: Read the append-only audit log
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 100 } }
+      responses:
+        "200": { description: Audit entries }
+  /v1/policies:
+    get:
+      tags: [Governance]
+      summary: List governance policies
+      responses:
+        "200": { description: Policies }
+  /v1/policies/{id}:
+    put:
+      tags: [Governance]
+      summary: Enable/disable or retune a governance policy
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                value: { type: number }
+      responses:
+        "200": { description: Updated policy }
+        "404": { description: Policy not found }
+
+components:
+  parameters:
+    ModelId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    ExecuteRequest:
+      type: object
+      required: [inputs]
+      properties:
+        inputs:
+          type: object
+          additionalProperties: true
+          description: Map of input key to value, per the model's input schema.
+        includeTrace:
+          type: boolean
+          default: true
+    ResolveRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [APPROVE, DECLINE] }
+        reviewer: { type: string }
+        comment: { type: string }
+    Outcome:
+      type: object
+      properties:
+        decision: { type: string, enum: [APPROVE, REVIEW, DECLINE] }
+        riskScore: { type: number }
+        tier: { type: string }
+        confidence: { type: number }
+        reasonCodes:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              description: { type: string }
+              impact: { type: number }
+        explanation: { type: string }
+    Run:
+      type: object
+      properties:
+        id: { type: string }
+        modelId: { type: string }
+        modelVersion: { type: string }
+        inputs: { type: object, additionalProperties: true }
+        outcome: { $ref: "#/components/schemas/Outcome" }
+        status: { type: string, enum: [FINAL, PENDING_REVIEW, RESOLVED] }
+        source: { type: string }
+        appliedPolicies: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+    Model:
+      type: object
+      required: [id, name, version, inputs, decisionTable]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        version: { type: string }
+        description: { type: string }
+        tags: { type: array, items: { type: string } }
+        inputs:
+          type: array
+          items:
+            type: object
+            required: [key, type]
+            properties:
+              key: { type: string }
+              label: { type: string }
+              type: { type: string, enum: [number, string, boolean] }
+              required: { type: boolean }
+              min: { type: number }
+              max: { type: number }
+              enum: { type: array, items: { type: string } }
+        derivations:
+          type: array
+          items:
+            type: object
+            properties:
+              key: { type: string }
+              expr: { type: string }
+        knockouts:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              when: { type: string }
+              reason: { type: string }
+        scorecard:
+          type: object
+          properties:
+            base: { type: number }
+            min: { type: number }
+            max: { type: number }
+            output: { type: string }
+            factors:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: string }
+                  when: { type: string }
+                  points: { type: number }
+                  reason: { type: string }
+        decisionTable:
+          type: object
+          required: [rules]
+          properties:
+            hitPolicy: { type: string, enum: [FIRST] }
+            rules:
+              type: array
+              items:
+                type: object
+                required: [id, when, decision]
+                properties:
+                  id: { type: string }
+                  when: { type: string }
+                  decision: { type: string, enum: [APPROVE, REVIEW, DECLINE] }
+                  tier: { type: string }
+                  reason: { type: string }
