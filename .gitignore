@@ -13,6 +13,13 @@
 coverage.out
 coverage.html
 
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.egg-info/
+
 # Editor / OS
 .DS_Store
 .idea/
