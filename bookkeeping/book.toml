@@ -1,0 +1,24 @@
+[book]
+title = "Autonomyx BookKeeping"
+description = "How the Autonomyx BookKeeping service uses the Apache BookKeeper protocol to provide a durable, ordered, append-only ledger for decision governance on the Autonomyx Decision Intelligence Platform."
+authors = ["Autonomyx Platform Team"]
+language = "en"
+src = "src"
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/openautonomyx/platform"
+edit-url-template = "https://github.com/openautonomyx/platform/edit/main/bookkeeping/{path}"
+no-section-label = false
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.search]
+enable = true
+
+[build]
+build-dir = "book"
+create-missing = true
