@@ -1,5 +1,27 @@
+# Build artifacts
+# NOTE: anchor binary names to the repo root so they do not also match the
+# cmd/metakube/ source directory.
+/bin/
+/dist/
+/metakube
+*.exe
+*.out
+
+# Go
+*.test
+*.prof
+coverage.out
+coverage.html
+
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
 *.egg-info/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metakube
+  labels:
+    app.kubernetes.io/name: metakube
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: metakube
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
