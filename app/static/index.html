@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Decision Intelligence Console</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="icon" href="data:," />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Decision Intelligence Console</h1>
+      <p class="tagline">Model &middot; execute &middot; orchestrate &middot; govern &mdash; on the <code>dip</code> engine</p>
+    </div>
+    <div id="health" class="health" title="engine status">connecting&hellip;</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-target="panel-models">Models</button>
+    <button class="tab" data-target="panel-decide">Decide</button>
+    <button class="tab" data-target="panel-orchestrate">Orchestrate</button>
+    <button class="tab" data-target="panel-governance">Governance</button>
+  </nav>
+
+  <main>
+    <!-- Models ---------------------------------------------------------->
+    <section id="panel-models" class="panel active">
+      <div class="panel-head">
+        <h2>Decision models</h2>
+        <p>Explainable, prioritised rule sets. The first matching rule (by priority) wins.</p>
+      </div>
+      <div id="models-list" class="cards"></div>
+
+      <details class="define">
+        <summary>Define a new model (JSON)</summary>
+        <p class="hint">Register or replace a model. Operators:
+          <code>eq, ne, gt, gte, lt, lte, in, not_in, contains</code>; logic: <code>all</code> / <code>any</code>.</p>
+        <textarea id="model-json" spellcheck="false" rows="16"></textarea>
+        <div class="row">
+          <button id="register-model" class="primary">Register model</button>
+          <span id="model-msg" class="msg"></span>
+        </div>
+      </details>
+    </section>
+
+    <!-- Decide ---------------------------------------------------------->
+    <section id="panel-decide" class="panel">
+      <div class="panel-head">
+        <h2>Run a decision</h2>
+        <p>Execute a model against input data and inspect the explainable trace.</p>
+      </div>
+      <div class="form-grid">
+        <label for="decide-model">Model</label>
+        <select id="decide-model"></select>
+        <label for="decide-inputs">Inputs (JSON)</label>
+        <textarea id="decide-inputs" spellcheck="false" rows="8"></textarea>
+      </div>
+      <div class="row">
+        <button id="run-decide" class="primary">Run decision</button>
+      </div>
+      <div id="decide-result" class="result-area"></div>
+    </section>
+
+    <!-- Orchestrate ----------------------------------------------------->
+    <section id="panel-orchestrate" class="panel">
+      <div class="panel-head">
+        <h2>Orchestrate a decision flow</h2>
+        <p>Chain decision services into a flow. Each step's outcome is written to the
+          shared context as <code>&lt;service&gt;_outcome</code>; a mapper feeds it into the next step.</p>
+      </div>
+      <div id="flow-steps" class="flow-steps"></div>
+      <div class="row">
+        <button id="add-step">+ Add step</button>
+        <button id="load-example" class="link">Load risk &rarr; routing example</button>
+      </div>
+      <div class="form-grid">
+        <label for="flow-inputs">Initial inputs (JSON)</label>
+        <textarea id="flow-inputs" spellcheck="false" rows="6"></textarea>
+      </div>
+      <div class="row">
+        <button id="run-flow" class="primary">Run flow</button>
+      </div>
+      <div id="flow-result" class="result-area"></div>
+    </section>
+
+    <!-- Governance ------------------------------------------------------>
+    <section id="panel-governance" class="panel">
+      <div class="panel-head">
+        <h2>Governance &amp; monitoring</h2>
+        <p>An append-only audit log of every decision the engine has executed.</p>
+      </div>
+      <div class="row">
+        <input id="audit-filter" type="text" placeholder="filter by model name (optional)" />
+        <button id="refresh-audit" class="primary">Refresh</button>
+      </div>
+      <table class="audit">
+        <thead>
+          <tr><th>Time (UTC)</th><th>Model</th><th>Inputs</th><th>Outcome</th><th>Matched rule</th></tr>
+        </thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
