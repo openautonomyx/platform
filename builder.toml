@@ -1,0 +1,35 @@
+# ard box — a Cloud Native Buildpacks *builder* that makes agents discoverable.
+#
+# Build the box (at your desk / in CI):
+#     pack builder create ard/box --config builder.toml
+#
+# Then make any agent discoverable:
+#     pack build ghcr.io/acme/my-agent:0.1 --builder ard/box --path ./my-agent
+#     # or, equivalently:  ard build ./my-agent --image ghcr.io/acme/my-agent:0.1
+
+description = "ard box — a Cloud Native Buildpacks builder that makes agents discoverable (A2A cards + tool/skill servers)."
+
+[[buildpacks]]
+  id = "ard/python"
+  version = "0.1.0"
+  uri = "buildpacks/ard-python"
+
+[[buildpacks]]
+  id = "ard/node"
+  version = "0.1.0"
+  uri = "buildpacks/ard-node"
+
+# Detection order: try Python, then Node; both optional so multi-language repos work.
+[[order]]
+  [[order.group]]
+    id = "ard/python"
+    optional = true
+  [[order.group]]
+    id = "ard/node"
+    optional = true
+
+# Base images the box builds on. Swap for your org's hardened base if needed.
+[stack]
+  id = "io.buildpacks.stacks.jammy"
+  build-image = "paketobuildpacks/build-jammy-base"
+  run-image = "paketobuildpacks/run-jammy-base"

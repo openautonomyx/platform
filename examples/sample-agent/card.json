@@ -1,0 +1,14 @@
+{
+  "protocolVersion": "0.2.0",
+  "name": "echo-agent",
+  "description": "Echoes text back — a sample ard skill server.",
+  "url": "http://localhost:8080",
+  "version": "0.1.0",
+  "capabilities": { "streaming": false, "pushNotifications": false, "stateTransitionHistory": false },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    { "id": "echo", "name": "Echo", "description": "Return the input text", "tags": ["text"] }
+  ],
+  "x-ard": { "kind": "skill" }
+}

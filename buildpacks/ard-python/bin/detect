@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# CNB detect: $1 = platform dir, $2 = build plan path. CWD = app dir.
+# Pass if this looks like a Python agent project.
+if [[ -f pyproject.toml || -f requirements.txt || -f setup.py ]] || compgen -G "*.py" >/dev/null 2>&1; then
+  cat > "${2:-/dev/stdout}" <<'PLAN'
+[[provides]]
+name = "ard-agent"
+
+[[requires]]
+name = "ard-agent"
+PLAN
+  exit 0
+fi
+exit 100

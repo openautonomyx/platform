@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# CNB build: $1 = layers dir, $2 = platform dir, $3 = build plan. CWD = app dir.
+layers_dir="$1"
+echo "---> ard Node Agent Buildpack"
+
+# 1. node_modules layer (launch + cache).
+mod_layer="${layers_dir}/node_modules"
+mkdir -p "${mod_layer}"
+cat > "${mod_layer}.toml" <<'TOML'
+[types]
+launch = true
+cache = true
+build = false
+TOML
+if [[ -f package.json ]]; then
+  npm install --omit=dev --prefix . >/dev/null 2>&1 || npm install --prefix . >/dev/null 2>&1 || true
+fi
+
+# 2. Emit the A2A agent card.
+: "${ARD_AGENT_NAME:=$(basename "$PWD")}"
+: "${ARD_AGENT_VERSION:=0.1.0}"
+: "${ARD_AGENT_URL:=http://localhost:8080}"
+: "${ARD_AGENT_KIND:=skill}"
+: "${ARD_AGENT_DESCRIPTION:=A discoverable ard agent}"
+mkdir -p .well-known
+cat > .well-known/agent.json <<JSON
+{
+  "protocolVersion": "0.2.0",
+  "name": "${ARD_AGENT_NAME}",
+  "description": "${ARD_AGENT_DESCRIPTION}",
+  "url": "${ARD_AGENT_URL}",
+  "version": "${ARD_AGENT_VERSION}",
+  "capabilities": { "streaming": false, "pushNotifications": false, "stateTransitionHistory": false },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [],
+  "x-ard": { "kind": "${ARD_AGENT_KIND}" }
+}
+JSON
+
+# 3. Launch process: prefer package.json "main", else index.js.
+entry="index.js"
+if [[ -f package.json ]]; then
+  main="$(node -e "process.stdout.write((require('./package.json').main)||'')" 2>/dev/null || true)"
+  [[ -n "${main}" ]] && entry="${main}"
+fi
+cat > "${layers_dir}/launch.toml" <<TOML
+[[processes]]
+type = "web"
+command = ["node", "${entry}"]
+default = true
+TOML
+
+echo "---> ard: card written (.well-known/agent.json), web process = node ${entry}"

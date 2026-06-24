@@ -1,0 +1,11 @@
+api = "0.10"
+
+[buildpack]
+id = "ard/python"
+version = "0.1.0"
+name = "ard Python Agent Buildpack"
+homepage = "https://discover.agennext.com"
+description = "Makes a Python agent discoverable: installs deps, emits its A2A agent card at /.well-known/agent.json, and sets the web process."
+
+[[stacks]]
+id = "*"

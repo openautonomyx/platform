@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# CNB detect: $1 = platform dir, $2 = build plan path. CWD = app dir.
+if [[ -f package.json ]]; then
+  cat > "${2:-/dev/stdout}" <<'PLAN'
+[[provides]]
+name = "ard-agent"
+
+[[requires]]
+name = "ard-agent"
+PLAN
+  exit 0
+fi
+exit 100

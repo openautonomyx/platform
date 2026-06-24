@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# CNB build: $1 = layers dir, $2 = platform dir, $3 = build plan. CWD = app dir.
+layers_dir="$1"
+echo "---> ard Python Agent Buildpack"
+
+# 1. Dependencies layer (launch + cache), with PYTHONPATH wired for launch.
+dep_layer="${layers_dir}/deps"
+mkdir -p "${dep_layer}/site-packages" "${dep_layer}/env.launch"
+cat > "${dep_layer}.toml" <<'TOML'
+[types]
+launch = true
+cache = true
+build = false
+TOML
+if [[ -f requirements.txt ]]; then
+  pip install --quiet --target "${dep_layer}/site-packages" -r requirements.txt
+fi
+printf '%s' "${dep_layer}/site-packages" > "${dep_layer}/env.launch/PYTHONPATH.prepend"
+printf ':' > "${dep_layer}/env.launch/PYTHONPATH.delim"
+
+# 2. Emit the A2A agent card the server will publish at /.well-known/agent.json.
+: "${ARD_AGENT_NAME:=$(basename "$PWD")}"
+: "${ARD_AGENT_VERSION:=0.1.0}"
+: "${ARD_AGENT_URL:=http://localhost:8080}"
+: "${ARD_AGENT_KIND:=skill}"
+: "${ARD_AGENT_DESCRIPTION:=A discoverable ard agent}"
+mkdir -p .well-known
+cat > .well-known/agent.json <<JSON
+{
+  "protocolVersion": "0.2.0",
+  "name": "${ARD_AGENT_NAME}",
+  "description": "${ARD_AGENT_DESCRIPTION}",
+  "url": "${ARD_AGENT_URL}",
+  "version": "${ARD_AGENT_VERSION}",
+  "capabilities": { "streaming": false, "pushNotifications": false, "stateTransitionHistory": false },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [],
+  "x-ard": { "kind": "${ARD_AGENT_KIND}" }
+}
+JSON
+
+# 3. Launch process: serve the agent (entrypoint convention).
+entry="agent.py"
+[[ -f "${entry}" ]] || entry="main.py"
+[[ -f "${entry}" ]] || entry="app.py"
+cat > "${layers_dir}/launch.toml" <<TOML
+[[processes]]
+type = "web"
+command = ["python", "${entry}"]
+default = true
+TOML
+
+echo "---> ard: card written (.well-known/agent.json), web process = python ${entry}"

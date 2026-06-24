@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ard"
+version = "0.1.0"
+description = "An ecosystem framework that makes agents discoverable: build (CNB → OCI), deploy (pods as tool/skill servers), register & discover (A2A agent cards)."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+ard = "ard.cli:main"
+
+[tool.setuptools]
+packages = ["ard"]
+
+[tool.pytest.ini_options]
+# Make the repo root importable so `import ard` resolves from tests/.
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"
