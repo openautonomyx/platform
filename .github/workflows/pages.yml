@@ -42,9 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure Pages
+        # Pages is enabled in repo settings (Source: GitHub Actions).
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
