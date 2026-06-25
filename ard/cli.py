@@ -105,13 +105,19 @@ def cmd_serve(args) -> int:
 
 
 def cmd_discover(args) -> int:
+    if args.peer:
+        from .federation import Federation, Peer
+        fed = Federation(registry=_registry(), peers=[Peer(u) for u in args.peer])
+        cards = fed.discover(skill=args.skill, tag=args.tag, kind=args.kind, issuer=args.issuer)
+        print(json.dumps([c.to_dict() for c in cards], indent=2))
+        return 0
     if args.url:
-        q = {k: v for k, v in (("skill", args.skill), ("tag", args.tag), ("kind", args.kind)) if v}
+        q = {k: v for k, v in (("skill", args.skill), ("tag", args.tag), ("kind", args.kind), ("issuer", args.issuer)) if v}
         url = args.url.rstrip("/") + "/agents?" + urllib.parse.urlencode(q)
         with urllib.request.urlopen(url, timeout=10) as resp:  # noqa: S310 (user-supplied registry URL)
             print(resp.read().decode())
         return 0
-    cards = _registry().query(skill=args.skill, tag=args.tag, kind=args.kind)
+    cards = _registry().query(skill=args.skill, tag=args.tag, kind=args.kind, issuer=args.issuer)
     print(json.dumps([c.to_dict() for c in cards], indent=2))
     return 0
 
@@ -163,11 +169,14 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--port", type=int, default=8080)
     sv.set_defaults(func=cmd_serve)
 
-    disc = sub.add_parser("discover", help="query discovery (local registry or a remote --url)")
+    disc = sub.add_parser("discover", help="query discovery (local, remote --url, or federated --peer)")
     disc.add_argument("--skill")
     disc.add_argument("--tag")
     disc.add_argument("--kind", choices=["skill", "tool"])
+    disc.add_argument("--issuer", help="filter by identity issuer")
     disc.add_argument("--url", help="a remote ard registry base URL")
+    disc.add_argument("--peer", action="append", default=[],
+                      help="peer node base URL (repeatable) — federate discovery across the mesh")
     disc.set_defaults(func=cmd_discover)
 
     c = sub.add_parser("card", help="agent card utilities")
