@@ -1,0 +1,6 @@
+# Dev/test dependencies (bounded pins).
+#
+# For a fully reproducible, hashed lock, generate one at your desk:
+#   pip-compile --generate-hashes -o requirements-dev.lock pyproject.toml
+#   # or:  uv lock
+pytest>=8,<9

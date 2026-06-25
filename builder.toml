@@ -29,7 +29,9 @@ description = "ard box — a Cloud Native Buildpacks builder that makes agents d
     optional = true
 
 # Base images the box builds on. Swap for your org's hardened base if needed.
+# PIN BY DIGEST for reproducible builds: run `scripts/pin-base-images.sh` to
+# resolve these tags to `…@sha256:…` and paste the results below.
 [stack]
   id = "io.buildpacks.stacks.jammy"
-  build-image = "paketobuildpacks/build-jammy-base"
-  run-image = "paketobuildpacks/run-jammy-base"
+  build-image = "paketobuildpacks/build-jammy-base"  # → pin: build-jammy-base@sha256:…
+  run-image = "paketobuildpacks/run-jammy-base"      # → pin: run-jammy-base@sha256:…

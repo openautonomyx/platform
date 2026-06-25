@@ -20,9 +20,10 @@ def test_null_sink_is_the_default():
     assert reg.get("A") is not None
 
 
-def test_catalog_routing_by_kind():
+def test_catalog_targets_agennext_registry():
     tool = agent_card("T", "d", "http://x", kind="tool", skills=["search"])
     skill = agent_card("S", "d", "http://x", kind="skill", skills=["echo"])
-    assert to_catalog_entry(tool)["repo"] == "openagx/services"
-    assert to_catalog_entry(skill)["repo"] == "openagx/Skills"
+    assert to_catalog_entry(tool)["registry"] == "AGenNext/Agent-MCPs"
+    assert to_catalog_entry(tool)["kind"] == "tool"
+    assert to_catalog_entry(skill)["kind"] == "skill"
     assert to_catalog_entry(tool)["skills"] == ["search"]

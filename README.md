@@ -10,14 +10,18 @@ agent card** at `/.well-known/agent.json` so the **registry** can discover it.
 > Dependency-free Python core + CLI (standard library only). The buildpacks are
 > standard CNB and run via `pack`.
 
-## Where it sits (openagx)
+## Nodes ard bridges to
 
-| Repo | Role |
-| --- | --- |
-| `openagx/Platform` | Agentic autonomous **governance** platform |
-| `openagx/services` · `openagx/Skills` | the **tool/skill servers** ard builds & deploys |
-| `openagx/AuthX-ID` | agent **identity** (cards can carry its auth schemes) |
-| **`ard`** | **build → deploy → discover** — the glue between them |
+There is **no canonical org** — the ecosystem is a mesh of nodes, and some repos
+are shared across them. ard is one node; it federates and bridges with others:
+
+| Node | Domain | ard bridge |
+| --- | --- | --- |
+| **agx** (igsec) | the broad base: **identity · governance · auth · security** | governance/security events + identity/auth |
+| `Agent-MCPs` | registry of MCP/agent servers | catalog / discovery federation |
+| `agent-lifecycle-management` | agent identity lifecycle | card identity |
+| `Agent-Sign` | Sigstore/Cosign signing (OCI/SBOM) | signs the box images |
+| **ard** | build → deploy → discover | the node tying these together |
 
 ## The loop
 
@@ -84,3 +88,34 @@ pip install pytest && pytest    # 26 tests
   catalog → `services`/`Skills`, SeaTunnel → lakehouse (Iceberg/Paimon) /
   Accumulo. Running them live needs the corresponding cluster. See
   [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+## Dependencies
+
+ard is **dependency-free at runtime** — the core engine and CLI use only the
+Python standard library, so there is nothing third-party to install, pin, or
+CVE-patch to *run* it.
+
+| Scope | Dependency | Pinned via |
+| --- | --- | --- |
+| Runtime (core + CLI) | none (Python ≥ 3.10 stdlib) | — |
+| Dev / test | `pytest` (`>=8,<9`) | `requirements-dev.txt` (+ hashed lock at desk) |
+| Build ("the box") | CNB lifecycle + base images | `builder.toml`, digest-pinned via `scripts/pin-base-images.sh` |
+| Per-agent build | that agent's own deps | its `requirements.txt` / `package-lock.json` |
+| Data plane (tunnels) | Apache SeaTunnel + sink (Iceberg/Paimon/Accumulo) | job version pins |
+
+External services are **bridged, not bundled**: AuthX-ID (identity), Platform
+(governance), services/Skills (catalog) and the lakehouse are reached through
+the interfaces in `ard/bridges.py` and `ard/tunnels.py`.
+
+## Reproducibility & pinning
+
+- **Core has zero runtime deps** (stdlib) — nothing to pin or CVE-patch at runtime.
+- **Dev/CI**: `requirements-dev.txt` bounds `pytest`; generate a hashed lock with
+  `pip-compile --generate-hashes` / `uv lock`. CI pins `actions/*` and Python.
+- **The box**: pin the CNB base images **by digest** — run
+  `scripts/pin-base-images.sh` and paste the `@sha256:…` refs into `builder.toml`.
+  Buildpacks are versioned; each agent pins its own deps via its lockfile.
+- **Signing**: sign the box's OCI images + SBOM with `AGenNext/Agent-Sign`
+  (Sigstore/Cosign); deploy only verified digests.
+- **Deploys**: reference built images **by digest** (`image@sha256:…`), not
+  floating tags, in the pod manager / K8s manifests; pin SeaTunnel + connectors.

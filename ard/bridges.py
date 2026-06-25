@@ -2,11 +2,11 @@
 
 ard is the glue layer; these are its connectors:
 
-- **GovernanceSink → openagx/Platform** — stream discovery/deploy events to the
-  autonomous-governance feed (ecosystem-wide analogue of the Decision
-  Intelligence Console's audit log). The registry emits on register/deregister.
-- **to_catalog_entry → openagx/services & openagx/Skills** — project an A2A card
-  into a catalog entry, routed by kind (tool → services, skill → Skills).
+- **GovernanceSink → agx (igsec security & governance platform)** — stream
+  discovery/deploy events to the autonomous-governance feed (ecosystem-wide
+  analogue of the Console's audit log). The registry emits on register/deregister.
+- **to_catalog_entry → AGenNext/Agent-MCPs** — project an A2A card into a
+  registry entry (the AGenNext agent/MCP registry), tagged by kind.
 - **AuthX-ID identity bridge** lives in ``ard/identity.py`` — cards carry an
   identity + ``securitySchemes`` and are discoverable by issuer.
 - **Discovery surface (discover.agennext.com)** consumes the registry/API.
@@ -42,16 +42,16 @@ class JsonlSink:
             f.write(json.dumps(event) + "\n")
 
 
-# Which openagx repo a server kind is cataloged under.
-CATALOG_REPOS = {"tool": "openagx/services", "skill": "openagx/Skills"}
+# The AGenNext registry that tool and skill servers are cataloged in.
+REGISTRY_REPO = "AGenNext/Agent-MCPs"
 
 
 def to_catalog_entry(card) -> dict:
-    """Project an agent card into an openagx catalog entry (services / Skills)."""
+    """Project an agent card into an AGenNext registry (Agent-MCPs) entry."""
     return {
         "name": card.name,
         "kind": card.kind,
-        "repo": CATALOG_REPOS.get(card.kind, "openagx/services"),
+        "registry": REGISTRY_REPO,
         "url": card.url,
         "version": card.version,
         "skills": [s.id for s in card.skills],
