@@ -23,6 +23,14 @@ fi
 : "${ARD_AGENT_URL:=http://localhost:8080}"
 : "${ARD_AGENT_KIND:=skill}"
 : "${ARD_AGENT_DESCRIPTION:=A discoverable ard agent}"
+: "${ARD_AUTHX_ISSUER:=}"
+: "${ARD_AGENT_ID:=${ARD_AGENT_NAME}}"
+sec_block=""
+ident_block=""
+if [[ -n "${ARD_AUTHX_ISSUER}" ]]; then
+  sec_block=", \"securitySchemes\": { \"authx-id\": { \"type\": \"openIdConnect\", \"openIdConnectUrl\": \"${ARD_AUTHX_ISSUER%/}/.well-known/openid-configuration\", \"x-authx-id\": true } }, \"security\": [ { \"authx-id\": [] } ]"
+  ident_block=", \"identity\": { \"agentId\": \"${ARD_AGENT_ID}\", \"issuer\": \"${ARD_AUTHX_ISSUER}\" }"
+fi
 mkdir -p .well-known
 cat > .well-known/agent.json <<JSON
 {
@@ -34,8 +42,8 @@ cat > .well-known/agent.json <<JSON
   "capabilities": { "streaming": false, "pushNotifications": false, "stateTransitionHistory": false },
   "defaultInputModes": ["text/plain"],
   "defaultOutputModes": ["text/plain"],
-  "skills": [],
-  "x-ard": { "kind": "${ARD_AGENT_KIND}" }
+  "skills": []${sec_block},
+  "x-ard": { "kind": "${ARD_AGENT_KIND}"${ident_block} }
 }
 JSON
 

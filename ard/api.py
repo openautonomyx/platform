@@ -52,6 +52,7 @@ class DiscoveryApi:
                     skill=_first(query, "skill"),
                     tag=_first(query, "tag"),
                     kind=_first(query, "kind"),
+                    issuer=_first(query, "issuer"),
                 )
                 return 200, [c.to_dict() for c in cards]
             if method == "POST":

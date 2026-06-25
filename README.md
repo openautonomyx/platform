@@ -77,5 +77,10 @@ pip install pytest && pytest    # 26 tests
 - The pod manager ships a **local Docker runtime** and a **K8s manifest**
   runtime (emits `kubectl apply`-ready JSON); wiring a live cluster client is
   the next step.
-- Agent cards follow the A2A shape; `securitySchemes` / AuthX-ID integration is
-  stubbed for now.
+- **AuthX-ID identity is implemented** — cards carry an identity + A2A
+  `securitySchemes` and are discoverable by issuer; JWT *signature* verification
+  (issuer JWKS) is the next step.
+- **Bridges & tunnels** ship as tested interfaces — governance → `Platform`,
+  catalog → `services`/`Skills`, SeaTunnel → lakehouse (Iceberg/Paimon) /
+  Accumulo. Running them live needs the corresponding cluster. See
+  [`ARCHITECTURE.md`](ARCHITECTURE.md).

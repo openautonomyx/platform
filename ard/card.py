@@ -15,6 +15,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from .identity import AuthXIdentity
+
 WELL_KNOWN_PATH = "/.well-known/agent.json"
 PROTOCOL_VERSION = "0.2.0"
 KINDS = ("skill", "tool")  # an ard server is one of these
@@ -102,6 +104,9 @@ class AgentCard:
     default_input_modes: list[str] = field(default_factory=lambda: ["text/plain"])
     default_output_modes: list[str] = field(default_factory=lambda: ["text/plain"])
     documentation_url: str | None = None
+    security_schemes: dict[str, Any] = field(default_factory=dict)
+    security: list[dict] = field(default_factory=list)
+    identity: AuthXIdentity | None = None
 
     def validate(self) -> "AgentCard":
         """Validate required fields; returns self so it can be chained."""
@@ -120,6 +125,14 @@ class AgentCard:
             if s.id in ids:
                 raise CardError(f"card {self.name!r}: duplicate skill id {s.id!r}")
             ids.add(s.id)
+        if self.identity is not None:
+            self.identity.validate()
+        for requirement in self.security:
+            for scheme_name in requirement:
+                if scheme_name not in self.security_schemes:
+                    raise CardError(
+                        f"card {self.name!r}: security requires undefined scheme {scheme_name!r}"
+                    )
         return self
 
     def to_dict(self) -> dict[str, Any]:
@@ -140,7 +153,12 @@ class AgentCard:
             "defaultOutputModes": list(self.default_output_modes),
             "skills": [s.to_dict() for s in self.skills],
             "documentationUrl": self.documentation_url,
-            "x-ard": {"kind": self.kind},
+            "securitySchemes": self.security_schemes,
+            "security": self.security,
+            "x-ard": {
+                "kind": self.kind,
+                "identity": self.identity.to_dict() if self.identity else None,
+            },
         }
 
     def to_json(self, indent: int = 2) -> str:
@@ -163,6 +181,9 @@ class AgentCard:
             default_input_modes=list(d.get("defaultInputModes", ["text/plain"])),
             default_output_modes=list(d.get("defaultOutputModes", ["text/plain"])),
             documentation_url=d.get("documentationUrl"),
+            security_schemes=dict(d.get("securitySchemes") or {}),
+            security=list(d.get("security") or []),
+            identity=AuthXIdentity.from_dict(x_ard["identity"]) if x_ard.get("identity") else None,
         )
 
     @classmethod

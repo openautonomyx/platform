@@ -10,14 +10,16 @@ import json
 import os
 import threading
 
+from .bridges import NullSink
 from .card import AgentCard
 
 
 class Registry:
-    def __init__(self, path: str | None = None) -> None:
+    def __init__(self, path: str | None = None, sink=None) -> None:
         self._lock = threading.Lock()
         self._cards: dict[str, AgentCard] = {}
         self.path = path
+        self.sink = sink or NullSink()
         if path and os.path.exists(path):
             self._load()
 
@@ -26,6 +28,7 @@ class Registry:
         with self._lock:
             self._cards[card.name] = card
             self._save()
+        self.sink.record({"event": "registered", "agent": card.name, "kind": card.kind, "url": card.url})
         return card
 
     def get(self, name: str) -> AgentCard | None:
@@ -40,15 +43,23 @@ class Registry:
         with self._lock:
             existed = self._cards.pop(name, None) is not None
             self._save()
-            return existed
+        if existed:
+            self.sink.record({"event": "deregistered", "agent": name})
+        return existed
 
     def query(
-        self, skill: str | None = None, tag: str | None = None, kind: str | None = None
+        self,
+        skill: str | None = None,
+        tag: str | None = None,
+        kind: str | None = None,
+        issuer: str | None = None,
     ) -> list[AgentCard]:
-        """Find cards by skill id/name, skill tag, and/or server kind."""
+        """Find cards by skill id/name, skill tag, server kind, and/or AuthX-ID issuer."""
         results = []
         for card in self.all():
             if kind and card.kind != kind:
+                continue
+            if issuer and not (card.identity and card.identity.issuer == issuer):
                 continue
             if skill and not any(s.id == skill or s.name == skill for s in card.skills):
                 continue
