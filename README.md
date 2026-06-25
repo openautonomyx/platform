@@ -1,7 +1,7 @@
 # ard — Agent Discovery
 
 **ard** (*Agent Discovery*) is the **build → deploy → discover** layer of the
-AgentWorld ecosystem.
+AgentWorld ecosystem. Home: **github.com/AGenNext/Agent-Discovery**.
 It ships as a **box** (a [Cloud Native Buildpacks](https://buildpacks.io) builder)
 you hand to a developer; at their desk it **detects their environment**, **builds**
 their agent into an **OCI image**, the **pod manager** runs it as a *tool server*
