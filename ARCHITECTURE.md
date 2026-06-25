@@ -1,4 +1,4 @@
-# ard — a node in the AgentWorld mesh
+# ard (Agent Discovery) — a node in the AgentWorld mesh
 
 ard is the **build → deploy → discover** layer, with **bridges** to peer nodes
 and **tunnels** to the data plane. There is **no canonical org** — peers

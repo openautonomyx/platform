@@ -1,4 +1,4 @@
-"""ard — an ecosystem framework that makes agents discoverable.
+"""ard (Agent Discovery) — an ecosystem framework that makes agents discoverable.
 
 The loop: **build → deploy → register → discover.**
 
